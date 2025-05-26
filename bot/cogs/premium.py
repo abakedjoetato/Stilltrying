@@ -16,40 +16,40 @@ logger = logging.getLogger(__name__)
 
 class ServerAutocomplete:
     """Autocomplete helper for server names"""
-    
+
     @staticmethod
     async def autocomplete_server_name(ctx: discord.AutocompleteContext):
         """Autocomplete callback for server names"""
         try:
             guild_id = ctx.interaction.guild_id
-            
+
             # Get bot instance from context
             bot = ctx.bot
-            
+
             # Get guild configuration
             guild_config = await bot.db_manager.get_guild(guild_id)
-            
+
             if not guild_config:
                 return [discord.OptionChoice(name="No servers configured", value="none")]
-                
+
             servers = guild_config.get('servers', [])
-            
+
             if not servers:
                 return [discord.OptionChoice(name="No servers found", value="none")]
-            
+
             # Return server choices
             choices = []
             for server in servers[:25]:  # Discord limits to 25 choices
                 server_id = str(server.get('_id', server.get('server_id', 'unknown')))
                 server_name = server.get('name', server.get('server_name', f'Server {server_id}'))
-                
+
                 choices.append(discord.OptionChoice(
                     name=f"{server_name} (ID: {server_id})",
                     value=server_id
                 ))
-            
+
             return choices
-            
+
         except Exception as e:
             logger.error(f"Autocomplete error: {e}")
             return [discord.OptionChoice(name="Error loading servers", value="none")]
@@ -447,26 +447,26 @@ class Premium(commands.Cog):
                     await self.bot.historical_parser.auto_refresh_after_server_add(guild_id, server_config)
             except Exception as e:
                 logger.error(f"Failed to schedule automatic refresh: {e}")
-                
+
         except Exception as e:
             logger.error(f"Failed to add server: {e}")
             await ctx.respond("❌ Failed to add server. Please try again.", ephemeral=True)
-            
+
     @server.command(name="list", description="List all configured servers in this guild")
     async def server_list(self, ctx: discord.ApplicationContext):
         """List all servers configured in this guild"""
         try:
             guild_id = ctx.guild.id
-            
+
             # Get guild configuration
             guild_config = await self.bot.db_manager.get_guild(guild_id)
-            
+
             if not guild_config:
                 await ctx.respond("❌ This guild is not configured!", ephemeral=True)
                 return
-                
+
             servers = guild_config.get('servers', [])
-            
+
             if not servers:
                 embed = discord.Embed(
                     title="📋 Server List",
@@ -482,7 +482,7 @@ class Premium(commands.Cog):
                 embed.set_footer(text="Powered by Discord.gg/EmeraldServers")
                 await ctx.respond(embed=embed)
                 return
-                
+
             # Create server list embed
             embed = discord.Embed(
                 title="📋 Server List",
@@ -490,7 +490,7 @@ class Premium(commands.Cog):
                 color=0x3498DB,
                 timestamp=datetime.now(timezone.utc)
             )
-            
+
             # Add server details
             for server in servers:
                 # The server ID might be in different fields depending on how it was added
@@ -498,37 +498,37 @@ class Premium(commands.Cog):
                 server_id = str(server.get('server_id', 
                               server.get('_id', 
                               server.get('id', 'unknown'))))
-                
+
                 # Get server metadata with better fallbacks
                 server_name = server.get('name', server.get('server_name', f'Server {server_id}'))
                 sftp_host = server.get('host', server.get('hostname', 'Not configured'))
                 sftp_port = server.get('port', 22)
-                
+
                 # Log server details for debugging
                 logger.info(f"Server details - ID: {server_id}, Name: {server_name}, Host: {sftp_host}")
-                
+
                 # Check premium status
                 is_premium = await self.bot.db_manager.is_premium_server(guild_id, server_id)
                 premium_status = "⭐ Premium" if is_premium else "🆓 Free tier"
-                
+
                 # Format server details
                 server_details = f"**Host:** {sftp_host}:{sftp_port}\n**Status:** {premium_status}"
-                
+
                 embed.add_field(
                     name=f"{server_name} (ID: {server_id})",
                     value=server_details,
                     inline=False
                 )
-                
+
             embed.set_thumbnail(url="attachment://main.png")
             embed.set_footer(text="Powered by Discord.gg/EmeraldServers")
-            
+
             await ctx.respond(embed=embed)
-            
+
         except Exception as e:
             logger.error(f"Failed to list servers: {e}")
             await ctx.respond("❌ Failed to list servers. Please try again.", ephemeral=True)
-            
+
     @server.command(name="remove", description="Remove a server from this guild")
     @discord.default_permissions(administrator=True)
     @discord.option(
@@ -541,19 +541,19 @@ class Premium(commands.Cog):
         try:
             guild_id = ctx.guild.id
             server_id = server  # Server ID from autocomplete
-            
+
             # Get guild configuration
             guild_config = await self.bot.db_manager.get_guild(guild_id)
-            
+
             if not guild_config:
                 await ctx.respond("❌ This guild is not configured!", ephemeral=True)
                 return
-                
+
             # Find server in the guild config - handle both old and new formats
             servers = guild_config.get('servers', [])
             server_found = False
             server_name = "Unknown Server"
-            
+
             for srv in servers:
                 # Check both _id (new format) and server_id (old format)
                 srv_id = str(srv.get('_id', srv.get('server_id', 'unknown')))
@@ -561,11 +561,11 @@ class Premium(commands.Cog):
                     server_found = True
                     server_name = srv.get('name', srv.get('server_name', f'Server {server_id}'))
                     break
-                    
+
             if not server_found:
                 await ctx.respond(f"❌ Server **{server_id}** not found in this guild!", ephemeral=True)
                 return
-                
+
             # Confirm removal
             confirm_embed = discord.Embed(
                 title="⚠️ Confirm Server Removal",
@@ -573,45 +573,45 @@ class Premium(commands.Cog):
                 color=0xFF6B6B,
                 timestamp=datetime.now(timezone.utc)
             )
-            
+
             confirm_embed.add_field(
                 name="⚠️ Warning",
                 value="This will permanently remove all server configuration and data. This action cannot be undone.",
                 inline=False
             )
-            
+
             confirm_embed.set_thumbnail(url="attachment://main.png")
             confirm_embed.set_footer(text="Powered by Discord.gg/EmeraldServers")
-            
+
             # Create confirmation buttons
             class ConfirmView(discord.ui.View):
                 def __init__(self):
                     super().__init__(timeout=60)
                     self.value = None
-                    
+
                 @discord.ui.button(label="Cancel", style=discord.ButtonStyle.secondary, emoji="❌")
                 async def cancel_button(self, button, interaction):
                     self.value = False
                     self.stop()
                     await interaction.response.edit_message(content="🛑 Server removal cancelled.", embed=None, view=None)
-                    
+
                 @discord.ui.button(label="Remove Server", style=discord.ButtonStyle.danger, emoji="⚠️")
                 async def confirm_button(self, button, interaction):
                     self.value = True
                     self.stop()
                     await interaction.response.edit_message(content="⏳ Removing server...", embed=None, view=None)
-            
+
             # Send confirmation message
             view = ConfirmView()
             await ctx.respond(embed=confirm_embed, view=view)
-            
+
             # Wait for confirmation
             await view.wait()
-            
+
             if view.value:
                 # Remove server from guild config
                 result = await self.bot.db_manager.remove_server_from_guild(guild_id, server_id)
-                
+
                 if result:
                     success_embed = discord.Embed(
                         title="✅ Server Removed",
@@ -619,19 +619,19 @@ class Premium(commands.Cog):
                         color=0x00FF00,
                         timestamp=datetime.now(timezone.utc)
                     )
-                    
+
                     success_embed.set_thumbnail(url="attachment://main.png")
                     success_embed.set_footer(text="Powered by Discord.gg/EmeraldServers")
-                    
+
                     await ctx.followup.send(embed=success_embed)
                 else:
                     await ctx.followup.send("❌ Failed to remove server. Please try again.")
-            
-            
+
+
         except Exception as e:
             logger.error(f"Failed to remove server: {e}")
             await ctx.respond("❌ Failed to remove server. Please try again.", ephemeral=True)
-            
+
     @server.command(name="refresh", description="Refresh data for a server")
     @discord.default_permissions(administrator=True)
     @discord.option(
@@ -644,46 +644,46 @@ class Premium(commands.Cog):
         try:
             guild_id = ctx.guild.id
             server_id = server  # Server ID from autocomplete
-            
+
             # Get guild configuration
             guild_config = await self.bot.db_manager.get_guild(guild_id)
-            
+
             if not guild_config:
                 await ctx.respond("❌ This guild is not configured!", ephemeral=True)
                 return
-                
+
             # Find server in the guild config
             servers = guild_config.get('servers', [])
             server_found = False
             server_config = None
             server_name = "Unknown Server"
-            
+
             for srv in servers:
                 if str(srv.get('_id')) == server_id:
                     server_found = True
                     server_config = srv
                     server_name = srv.get('name', f'Server {server_id}')
                     break
-                    
+
             if not server_found or not server_config:
                 await ctx.respond(f"❌ Server **{server_id}** not found in this guild!", ephemeral=True)
                 return
-                
+
             # Respond with initial message
             await ctx.respond(f"⏳ Starting data refresh for server **{server_name}**...")
-            
+
             # Verify we have the historical parser
             if not hasattr(self.bot, 'historical_parser'):
                 await ctx.followup.send("❌ Historical parser is not available!")
                 return
-                
+
             # Run historical data refresh
             try:
                 await self.bot.historical_parser.refresh_server_data(guild_id, server_config, channel=ctx.channel)
             except Exception as e:
                 logger.error(f"Failed to refresh data: {e}")
                 await ctx.followup.send("❌ Failed to start data refresh. Please try again later.")
-            
+
         except Exception as e:
             logger.error(f"Failed to refresh server data: {e}")
             await ctx.respond("❌ Failed to initiate data refresh. Please try again.", ephemeral=True)

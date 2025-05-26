@@ -26,17 +26,22 @@ class Factions(commands.Cog):
 
     async def check_premium_server(self, guild_id: int) -> bool:
         """Check if guild has premium access for faction features"""
-        guild_doc = await self.bot.db_manager.get_guild(guild_id)
-        if not guild_doc:
+        try:
+            guild_doc = await self.bot.db_manager.get_guild(guild_id)
+            if not guild_doc:
+                return False
+
+            servers = guild_doc.get('servers', [])
+            for server_config in servers:
+                current_server_id = server_config.get('server_id', server_config.get('_id', 'default'))
+                is_premium = await self.bot.db_manager.is_premium_server(guild_id, current_server_id)
+                if is_premium:
+                    return True
+
             return False
-
-        servers = guild_doc.get('servers', [])
-        for server_config in servers:
-            server_id = server_config.get('server_id', server_config.get('_id', 'default'))
-            if await self.bot.db_manager.is_premium_server(guild_id, server_id):
-                return True
-
-        return False
+        except Exception as e:
+            logger.error(f"Error checking premium server: {e}")
+            return False
 
     async def get_user_faction(self, guild_id: int, discord_id: int) -> Optional[Dict[str, Any]]:
         """Get the faction a user belongs to"""

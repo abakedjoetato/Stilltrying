@@ -13,6 +13,14 @@ from bot.utils.embed_factory import EmbedFactory
 
 logger = logging.getLogger(__name__)
 
+import discord
+from discord.ext import commands
+from bot.utils.embed_factory import EmbedFactory
+from datetime import datetime, timezone
+import logging
+
+logger = logging.getLogger(__name__)
+
 class EmbedTest(commands.Cog):
     """
     EMBED TESTING
@@ -54,6 +62,49 @@ class EmbedTest(commands.Cog):
                 embed.add_field(
                     name="📝 Field 3",
                     value="This is a full-width field",
+                    inline=False
+                )
+                
+            elif embed_type == "success":
+                embed = EmbedFactory.build(
+                    title="✅ Success Test",
+                    description="This is a success embed test.",
+                    color=0x00FF00,
+                    timestamp=datetime.now(timezone.utc)
+                )
+                
+            elif embed_type == "error":
+                embed = EmbedFactory.build(
+                    title="❌ Error Test",
+                    description="This is an error embed test.",
+                    color=0xFF0000,
+                    timestamp=datetime.now(timezone.utc)
+                )
+                
+            elif embed_type == "warning":
+                embed = EmbedFactory.build(
+                    title="⚠️ Warning Test",
+                    description="This is a warning embed test.",
+                    color=0xFFFF00,
+                    timestamp=datetime.now(timezone.utc)
+                )
+                
+            elif embed_type == "info":
+                embed = EmbedFactory.build(
+                    title="ℹ️ Info Test",
+                    description="This is an info embed test.",
+                    color=0x3498DB,
+                    timestamp=datetime.now(timezone.utc)
+                )
+            
+            await ctx.respond(embed=embed)
+            
+        except Exception as e:
+            logger.error(f"Failed to test embed: {e}")
+            await ctx.respond("❌ Failed to test embed.", ephemeral=True)
+
+def setup(bot):
+    bot.add_cog(EmbedTest(bot))idth field",
                     inline=False
                 )
             

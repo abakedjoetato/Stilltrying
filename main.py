@@ -153,7 +153,7 @@ class EmeraldKillfeedBot(commands.Bot):
         # Verify commands are registered
         try:
             command_count = len(self.application_commands) if hasattr(self, 'application_commands') else 0
-            logger.info(f"📊 Loaded {len(loaded_cogs)}/{len(cogs)} cogs successfully")
+            logger.info(f"📊 Loaded {loaded_count}/{len(cogs)} cogs successfully")
             logger.info(f"📊 Total slash commands registered: {command_count}")
 
             # Debug: List actual commands found

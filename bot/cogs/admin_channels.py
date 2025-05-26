@@ -24,7 +24,8 @@ class AdminChannels(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.slash_command(name="channel_set", description="Set a channel for bot functions", default_member_permissions=discord.Permissions(administrator=True))
+    @discord.slash_command(name="channel_set", description="Set a channel for bot functions")
+    @discord.default_permissions(administrator=True)
     async def channel_set(self, ctx: discord.ApplicationContext, 
                          channel_type: discord.Option(str, "Type of channel", 
                                                      choices=["killfeed", "notifications", "logs"]),
@@ -71,7 +72,8 @@ class AdminChannels(commands.Cog):
             logger.error(f"Failed to set channel: {e}")
             await ctx.respond("❌ Failed to configure channel.", ephemeral=True)
 
-    @discord.slash_command(name="channel_list", description="List configured channels", default_member_permissions=discord.Permissions(administrator=True))
+    @discord.slash_command(name="channel_list", description="List configured channels")
+    @discord.default_permissions(administrator=True)
     async def channel_list(self, ctx: discord.ApplicationContext, 
                           server_id: str = "default"):
         """List all configured channels for a server"""

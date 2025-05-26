@@ -24,7 +24,8 @@ class EmbedTest(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @discord.slash_command(name="embed_test", description="Test embed configurations", default_member_permissions=discord.Permissions(administrator=True))
+    @discord.slash_command(name="embed_test", description="Test embed configurations")
+    @discord.default_permissions(administrator=True)
     async def embed_test(self, ctx: discord.ApplicationContext, 
                         embed_type: discord.Option(str, "Type of embed to test",
                                                   choices=["basic", "success", "error", "warning", "info"])):
@@ -118,7 +119,8 @@ class EmbedTest(commands.Cog):
             logger.error(f"Failed to test embed: {e}")
             await ctx.respond("❌ Failed to generate test embed.", ephemeral=True)
     
-    @discord.slash_command(name="embed_factory_test", description="Test EmbedFactory functionality", default_member_permissions=discord.Permissions(administrator=True))
+    @discord.slash_command(name="embed_factory_test", description="Test EmbedFactory functionality")
+    @discord.default_permissions(administrator=True)
     async def embed_factory_test(self, ctx: discord.ApplicationContext):
         """Test the EmbedFactory system"""
         try:

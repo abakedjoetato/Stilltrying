@@ -13,6 +13,7 @@ from typing import Dict, Optional, Any
 
 import discord
 from discord.ext import commands
+from bot.utils.embed_factory import EmbedFactory
 
 logger = logging.getLogger(__name__)
 
@@ -227,7 +228,7 @@ class Economy(commands.Cog):
 
     # Economy admin commands
     @discord.slash_command(name="eco_give", description="Give money to a user (Admin)")
-    @commands.default_permissions(administrator=True)
+    @discord.default_permissions(administrator=True)
     async def eco_give(self, ctx: discord.ApplicationContext, 
                        user: discord.Member, amount: int):
         """Give money to a user (admin only)"""
@@ -276,7 +277,7 @@ class Economy(commands.Cog):
             await ctx.respond("❌ Failed to give money.", ephemeral=True)
 
     @discord.slash_command(name="eco_take", description="Take money from a user (Admin)")
-    @commands.default_permissions(administrator=True)
+    @discord.default_permissions(administrator=True)
     async def eco_take(self, ctx: discord.ApplicationContext, 
                        user: discord.Member, amount: int):
         """Take money from a user (admin only)"""
@@ -334,7 +335,7 @@ class Economy(commands.Cog):
             await ctx.respond("❌ Failed to take money.", ephemeral=True)
 
     @discord.slash_command(name="eco_reset", description="Reset a user's wallet (Admin)")
-    @commands.default_permissions(administrator=True)
+    @discord.default_permissions(administrator=True)
     async def eco_reset(self, ctx: discord.ApplicationContext, user: discord.Member):
         """Reset a user's wallet (admin only)"""
         try:

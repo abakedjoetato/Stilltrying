@@ -1,90 +1,153 @@
+
 """
-Emerald's Killfeed - Autocomplete System
-Provides autocomplete functionality for Discord commands
+Emerald's Killfeed - Autocomplete Utilities
+Provides autocomplete functionality for various commands
 """
 
 import logging
-from typing import List
+from typing import List, Dict, Any, Optional
 
 import discord
 from discord.ext import commands
 
 logger = logging.getLogger(__name__)
 
-class ServerAutocomplete:
-    """Autocomplete helper for server names"""
+class Autocomplete(commands.Cog):
+    """
+    AUTOCOMPLETE UTILITIES
+    - Server autocomplete
+    - Player autocomplete
+    - Character autocomplete
+    """
 
-    @staticmethod
-    async def autocomplete_server_name(ctx: discord.AutocompleteContext):
-        """Autocomplete callback for server names"""
+    def __init__(self, bot):
+        self.bot = bot
+
+    async def get_servers_for_guild(self, guild_id: int) -> List[Dict[str, Any]]:
+        """Get all servers configured for a guild"""
         try:
-            guild_id = ctx.interaction.guild_id
-
-            # Get bot instance from context
-            bot = ctx.bot
-
-            # Get guild configuration
-            guild_config = await bot.db_manager.get_guild(guild_id)
-
-            if not guild_config:
-                return [discord.OptionChoice(name="No servers configured", value="none")]
-
-            servers = guild_config.get('servers', [])
-
-            if not servers:
-                return [discord.OptionChoice(name="No servers found", value="none")]
-
-            # Return server choices
-            choices = []
-            for server in servers[:25]:  # Discord limits to 25 choices
-                server_id = str(server.get('_id', server.get('server_id', 'unknown')))
-                server_name = server.get('name', server.get('server_name', f'Server {server_id}'))
-
-                choices.append(discord.OptionChoice(
-                    name=f"{server_name} (ID: {server_id})",
-                    value=server_id
-                ))
-
-            return choices
-
+            guild_doc = await self.bot.db_manager.get_guild(guild_id)
+            if not guild_doc:
+                return []
+            
+            servers = guild_doc.get('servers', [])
+            return servers
+            
         except Exception as e:
-            logger.error(f"Autocomplete error: {e}")
-            return [discord.OptionChoice(name="Error loading servers", value="none")]
+            logger.error(f"Failed to get servers for guild {guild_id}: {e}")
+            return []
 
-class PlayerAutocomplete:
-    """Autocomplete helper for player names"""
-
-    @staticmethod
-    async def autocomplete_player_name(ctx: discord.AutocompleteContext):
-        """Autocomplete callback for player names"""
+    async def get_players_for_server(self, guild_id: int, server_id: str = "default") -> List[str]:
+        """Get all players for a specific server"""
         try:
-            guild_id = ctx.interaction.guild_id
-            bot = ctx.bot
+            players = await self.bot.db_manager.db.players.find({
+                "guild_id": guild_id,
+                "server_id": server_id
+            }).to_list(None)
+            
+            player_names = []
+            for player in players:
+                if 'character_name' in player:
+                    player_names.append(player['character_name'])
+            
+            return sorted(list(set(player_names)))
+            
+        except Exception as e:
+            logger.error(f"Failed to get players for server {server_id}: {e}")
+            return []
 
-            # Get recent players from database
-            cursor = bot.db_manager.pvp_data.find(
-                {"guild_id": guild_id}, 
-                {"player_name": 1}
-            ).limit(25)
+    async def get_characters_for_discord_user(self, guild_id: int, discord_id: int) -> List[str]:
+        """Get all characters for a Discord user"""
+        try:
+            links = await self.bot.db_manager.db.player_links.find({
+                "guild_id": guild_id,
+                "discord_id": discord_id
+            }).to_list(None)
+            
+            characters = []
+            for link in links:
+                if 'character_name' in link:
+                    characters.append(link['character_name'])
+            
+            return sorted(list(set(characters)))
+            
+        except Exception as e:
+            logger.error(f"Failed to get characters for Discord user {discord_id}: {e}")
+            return []
 
-            players = []
-            async for doc in cursor:
-                player_name = doc.get('player_name')
-                if player_name and player_name not in players:
-                    players.append(player_name)
+    async def server_autocomplete(self, ctx: discord.AutocompleteContext) -> List[discord.OptionChoice]:
+        """Autocomplete for server selection"""
+        try:
+            guild_id = ctx.interaction.guild.id
+            servers = await self.get_servers_for_guild(guild_id)
+            
+            choices = []
+            for server in servers:
+                server_id = server.get('server_id', server.get('_id', 'default'))
+                server_name = server.get('server_name', f'Server {server_id}')
+                
+                # Filter based on current input
+                if not ctx.value or ctx.value.lower() in server_name.lower():
+                    choices.append(discord.OptionChoice(
+                        name=server_name,
+                        value=server_id
+                    ))
+            
+            return choices[:25]  # Discord limit
+            
+        except Exception as e:
+            logger.error(f"Server autocomplete error: {e}")
+            return []
 
-            # Create choices
-            choices = [
-                discord.OptionChoice(name=player, value=player)
-                for player in sorted(players)[:25]
-            ]
-
-            return choices if choices else [discord.OptionChoice(name="No players found", value="none")]
-
+    async def player_autocomplete(self, ctx: discord.AutocompleteContext) -> List[discord.OptionChoice]:
+        """Autocomplete for player selection"""
+        try:
+            guild_id = ctx.interaction.guild.id
+            
+            # Try to get server_id from other options
+            server_id = "default"
+            if hasattr(ctx, 'options') and 'server_id' in ctx.options:
+                server_id = ctx.options['server_id']
+            
+            players = await self.get_players_for_server(guild_id, server_id)
+            
+            choices = []
+            for player in players:
+                # Filter based on current input
+                if not ctx.value or ctx.value.lower() in player.lower():
+                    choices.append(discord.OptionChoice(
+                        name=player,
+                        value=player
+                    ))
+            
+            return choices[:25]  # Discord limit
+            
         except Exception as e:
             logger.error(f"Player autocomplete error: {e}")
-            return [discord.OptionChoice(name="Error loading players", value="none")]
+            return []
+
+    async def character_autocomplete(self, ctx: discord.AutocompleteContext) -> List[discord.OptionChoice]:
+        """Autocomplete for character selection"""
+        try:
+            guild_id = ctx.interaction.guild.id
+            discord_id = ctx.interaction.user.id
+            
+            characters = await self.get_characters_for_discord_user(guild_id, discord_id)
+            
+            choices = []
+            for character in characters:
+                # Filter based on current input
+                if not ctx.value or ctx.value.lower() in character.lower():
+                    choices.append(discord.OptionChoice(
+                        name=character,
+                        value=character
+                    ))
+            
+            return choices[:25]  # Discord limit
+            
+        except Exception as e:
+            logger.error(f"Character autocomplete error: {e}")
+            return []
 
 def setup(bot):
-    """Setup function for autocomplete helpers"""
-    pass
+    bot.add_cog(Autocomplete(bot))

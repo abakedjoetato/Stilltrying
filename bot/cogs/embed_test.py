@@ -1,216 +1,171 @@
-
 """
-Emerald's Killfeed - Embed Testing System
-Test various embed configurations and styles
+Emerald's Killfeed - Embed Testing (PHASE 1)
+Test all embed types and verify EmbedFactory functionality
 """
 
 import logging
 from datetime import datetime, timezone
+from typing import Optional
 
 import discord
 from discord.ext import commands
 from bot.utils.embed_factory import EmbedFactory
-
-logger = logging.getLogger(__name__)
-
-import discord
-from discord.ext import commands
-from bot.utils.embed_factory import EmbedFactory
-from datetime import datetime, timezone
-import logging
 
 logger = logging.getLogger(__name__)
 
 class EmbedTest(commands.Cog):
     """
-    EMBED TESTING
-    - Test embed configurations
-    - Preview embed styles
-    - Debug embed issues
+    EMBED TESTING (ADMIN)
+    - Test all embed types
+    - Verify EmbedFactory functionality
     """
-    
+
     def __init__(self, bot):
         self.bot = bot
-    
-    @discord.slash_command(name="embed_test", description="Test embed configurations")
-    @discord.default_permissions(administrator=True)
-    async def embed_test(self, ctx: discord.ApplicationContext, 
-                        embed_type: discord.Option(str, "Type of embed to test",
-                                                  choices=["basic", "success", "error", "warning", "info"])):
-        """Test different embed configurations"""
-        try:
-            if embed_type == "basic":
-                embed = EmbedFactory.build(
-                    title="🧪 Basic Embed Test",
-                    description="This is a basic embed test with standard formatting.",
-                    color=0x3498DB,
-                    timestamp=datetime.now(timezone.utc)
-                )
-                
-                embed.add_field(
-                    name="📝 Field 1",
-                    value="This is the first test field",
-                    inline=True
-                )
-                
-                embed.add_field(
-                    name="📝 Field 2",
-                    value="This is the second test field",
-                    inline=True
-                )
-                
-                embed.add_field(
-                    name="📝 Field 3",
-                    value="This is a full-width field",
-                    inline=False
-                )
-                
-            elif embed_type == "success":
-                embed = EmbedFactory.build(
-                    title="✅ Success Test",
-                    description="This is a success embed test.",
-                    color=0x00FF00,
-                    timestamp=datetime.now(timezone.utc)
-                )
-                
-            elif embed_type == "error":
-                embed = EmbedFactory.build(
-                    title="❌ Error Test",
-                    description="This is an error embed test.",
-                    color=0xFF0000,
-                    timestamp=datetime.now(timezone.utc)
-                )
-                
-            elif embed_type == "warning":
-                embed = EmbedFactory.build(
-                    title="⚠️ Warning Test",
-                    description="This is a warning embed test.",
-                    color=0xFFFF00,
-                    timestamp=datetime.now(timezone.utc)
-                )
-                
-            elif embed_type == "info":
-                embed = EmbedFactory.build(
-                    title="ℹ️ Info Test",
-                    description="This is an info embed test.",
-                    color=0x3498DB,
-                    timestamp=datetime.now(timezone.utc)
-                )
-            
-            await ctx.respond(embed=embed)
-            
-        except Exception as e:
-            logger.error(f"Failed to test embed: {e}")
-            await ctx.respond("❌ Failed to test embed.", ephemeral=True)
 
-def setup(bot):
-    bot.add_cog(EmbedTest(bot))idth field",
-                    inline=False
-                )
-            
-            elif embed_type == "success":
-                embed = EmbedFactory.build(
-                    title="✅ Success Embed Test",
-                    description="This embed represents successful operations.",
-                    color=0x00FF00,
-                    timestamp=datetime.now(timezone.utc)
-                )
-                
-                embed.add_field(
-                    name="🎉 Operation",
-                    value="Test operation completed successfully!",
-                    inline=False
-                )
-            
-            elif embed_type == "error":
-                embed = EmbedFactory.build(
-                    title="❌ Error Embed Test",
-                    description="This embed represents error conditions.",
-                    color=0xFF6B6B,
-                    timestamp=datetime.now(timezone.utc)
-                )
-                
-                embed.add_field(
-                    name="🚨 Error Details",
-                    value="This is a test error message for debugging purposes.",
-                    inline=False
-                )
-            
-            elif embed_type == "warning":
-                embed = EmbedFactory.build(
-                    title="⚠️ Warning Embed Test",
-                    description="This embed represents warning conditions.",
-                    color=0xFFD700,
-                    timestamp=datetime.now(timezone.utc)
-                )
-                
-                embed.add_field(
-                    name="🔔 Warning Message",
-                    value="This is a test warning for user attention.",
-                    inline=False
-                )
-            
-            elif embed_type == "info":
-                embed = EmbedFactory.build(
-                    title="ℹ️ Info Embed Test",
-                    description="This embed provides informational content.",
-                    color=0x17A2B8,
-                    timestamp=datetime.now(timezone.utc)
-                )
-                
-                embed.add_field(
-                    name="📊 Information",
-                    value="This is test information for users.",
-                    inline=False
-                )
-            
-            await ctx.respond(embed=embed)
-            
+    @discord.slash_command(name="test_embed", description="Test embed functionality (Admin)")
+    @discord.default_permissions(administrator=True)
+    async def test_embed(self, ctx: discord.ApplicationContext, 
+                        embed_type: discord.Option(str, "Type of embed to test", 
+                                                  choices=["killfeed", "bounty", "faction", "leaderboard", "economy", "gambling"])):
+        """Test different embed types"""
+        try:
+            test_data = self._get_test_data(embed_type)
+
+            embed = EmbedFactory.build(
+                embed_type=embed_type,
+                **test_data
+            )
+
+            if isinstance(embed, tuple):
+                embed_obj, file_obj = embed
+                if file_obj:
+                    await ctx.respond(embed=embed_obj, file=file_obj)
+                else:
+                    await ctx.respond(embed=embed_obj)
+            else:
+                await ctx.respond(embed=embed)
+
         except Exception as e:
             logger.error(f"Failed to test embed: {e}")
-            await ctx.respond("❌ Failed to generate test embed.", ephemeral=True)
-    
-    @discord.slash_command(name="embed_factory_test", description="Test EmbedFactory functionality")
+            await ctx.respond(f"❌ Failed to test {embed_type} embed: {str(e)}", ephemeral=True)
+
+    def _get_test_data(self, embed_type: str) -> dict:
+        """Get test data for different embed types"""
+        base_time = datetime.now(timezone.utc)
+
+        test_data_map = {
+            "killfeed": {
+                "title": "🔫 Test Kill",
+                "description": "Test killfeed embed",
+                "data": {
+                    "killer": "TestKiller",
+                    "victim": "TestVictim",
+                    "weapon": "AK-74",
+                    "distance": "125m",
+                    "server_name": "Test Server",
+                    "thumbnail_url": "attachment://main.png"
+                }
+            },
+            "bounty": {
+                "title": "💰 Test Bounty",
+                "description": "Test bounty embed",
+                "data": {
+                    "target": "TestTarget",
+                    "amount": 5000,
+                    "issuer": "TestIssuer",
+                    "reason": "Test bounty",
+                    "thumbnail_url": "attachment://main.png"
+                }
+            },
+            "faction": {
+                "title": "⚔️ Test Faction",
+                "description": "Test faction embed",
+                "data": {
+                    "faction_name": "Test Faction",
+                    "member_count": 25,
+                    "leader": "TestLeader",
+                    "thumbnail_url": "attachment://main.png"
+                }
+            },
+            "leaderboard": {
+                "title": "🏆 Test Leaderboard",
+                "description": "Test leaderboard embed",
+                "data": {
+                    "leaderboard_type": "kills",
+                    "entries": [
+                        {"rank": 1, "player": "Player1", "value": 150},
+                        {"rank": 2, "player": "Player2", "value": 125},
+                        {"rank": 3, "player": "Player3", "value": 100}
+                    ],
+                    "thumbnail_url": "attachment://main.png"
+                }
+            },
+            "economy": {
+                "title": "💰 Test Economy",
+                "description": "Test economy embed",
+                "data": {
+                    "player": "TestPlayer",
+                    "balance": 10000,
+                    "earnings": 500,
+                    "thumbnail_url": "attachment://main.png"
+                }
+            },
+            "gambling": {
+                "title": "🎰 Test Gambling",
+                "description": "Test gambling embed",
+                "data": {
+                    "game_type": "slots",
+                    "bet": 100,
+                    "result": "win",
+                    "winnings": 500,
+                    "thumbnail_url": "attachment://main.png"
+                }
+            }
+        }
+
+        return test_data_map.get(embed_type, {
+            "title": "🧪 Test Embed",
+            "description": "Generic test embed",
+            "data": {"thumbnail_url": "attachment://main.png"}
+        })
+
+    @discord.slash_command(name="test_all_embeds", description="Test all embed types (Admin)")
     @discord.default_permissions(administrator=True)
-    async def embed_factory_test(self, ctx: discord.ApplicationContext):
-        """Test the EmbedFactory system"""
+    async def test_all_embeds(self, ctx: discord.ApplicationContext):
+        """Test all embed types"""
         try:
-            embed = EmbedFactory.build(
-                title="🏭 EmbedFactory Test",
-                description="Testing the EmbedFactory system with all features.",
-                color=0x9B59B6,
-                timestamp=datetime.now(timezone.utc)
-            )
-            
-            embed.add_field(
-                name="🔧 Factory Status",
-                value="✅ Working correctly",
-                inline=True
-            )
-            
-            embed.add_field(
-                name="📊 Tests Passed",
-                value="✅ All systems operational",
-                inline=True
-            )
-            
-            embed.add_field(
-                name="🎨 Theme",
-                value="✅ Consistent styling applied",
-                inline=True
-            )
-            
-            embed.add_field(
-                name="🖼️ Assets",
-                value="✅ Thumbnails and footers working",
-                inline=False
-            )
-            
-            await ctx.respond(embed=embed)
-            
+            await ctx.defer()
+
+            embed_types = ["killfeed", "bounty", "faction", "leaderboard", "economy", "gambling"]
+
+            for embed_type in embed_types:
+                try:
+                    test_data = self._get_test_data(embed_type)
+
+                    embed = EmbedFactory.build(
+                        embed_type=embed_type,
+                        **test_data
+                    )
+
+                    if isinstance(embed, tuple):
+                        embed_obj, file_obj = embed
+                        if file_obj:
+                            await ctx.followup.send(embed=embed_obj, file=file_obj)
+                        else:
+                            await ctx.followup.send(embed=embed_obj)
+                    else:
+                        await ctx.followup.send(embed=embed)
+
+                except Exception as e:
+                    logger.error(f"Failed to test {embed_type} embed: {e}")
+                    await ctx.followup.send(f"❌ Failed to test {embed_type} embed")
+
+            await ctx.followup.send("✅ All embed tests completed!")
+
         except Exception as e:
-            logger.error(f"Failed to test EmbedFactory: {e}")
-            await ctx.respond("❌ EmbedFactory test failed.", ephemeral=True)
+            logger.error(f"Failed to test all embeds: {e}")
+            await ctx.respond("❌ Failed to test embeds.", ephemeral=True)
 
 def setup(bot):
     bot.add_cog(EmbedTest(bot))

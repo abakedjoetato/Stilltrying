@@ -1,6 +1,6 @@
 """
-Emerald's Killfeed - Core System Commands
-Basic bot management, info, and utility commands
+Emerald's Killfeed - Core Commands (PHASE 1)
+Basic bot information and utility commands
 """
 
 import logging
@@ -15,51 +15,39 @@ logger = logging.getLogger(__name__)
 
 class Core(commands.Cog):
     """
-    CORE SYSTEM
-    - Basic bot information and utility commands
-    - Server management and configuration
-    - General purpose commands
+    CORE COMMANDS (FREE)
+    - /info, /ping, /help, /status
+    - Basic bot functionality
     """
 
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.slash_command(name="info", description="Show bot information")
+    @discord.slash_command(name="info", description="Get bot information")
     async def info(self, ctx: discord.ApplicationContext):
-        """Display bot information and statistics"""
+        """Display bot information"""
         try:
             embed = EmbedFactory.build(
-                title='🤖 Emerald\'s Killfeed Bot',
-                description='Advanced Discord bot for Deadside PvP tracking and management',
-                color=0x3498DB,
-                timestamp=datetime.now(timezone.utc)
+                embed_type="core",
+                title="🤖 Bot Information",
+                description="Emerald's Killfeed - Advanced Deadside server management",
+                data={
+                    "bot_name": "Emerald's Killfeed",
+                    "version": "2.6.1",
+                    "guild_count": len(self.bot.guilds),
+                    "user_count": len(self.bot.users),
+                    "thumbnail_url": "attachment://main.png"
+                }
             )
 
-            # Bot stats
-            embed.add_field(
-                name="📊 Statistics",
-                value=f"• Servers: **{len(self.bot.guilds)}**\n• Users: **{len(self.bot.users)}**\n• Commands: **{len(self.bot.pending_application_commands)}**",
-                inline=True
-            )
-
-            # Version info
-            embed.add_field(
-                name="⚙️ Version",
-                value="• Bot: **v5.0**\n• Py-cord: **2.6.1**\n• Phase: **Production**",
-                inline=True
-            )
-
-            # Features
-            embed.add_field(
-                name="🎯 Features",
-                value="• Killfeed Parsing\n• Player Linking\n• Economy System\n• Bounty System\n• Faction System\n• Statistics Tracking",
-                inline=False
-            )
-
-            embed.set_thumbnail(url="attachment://main.png")
-            embed.set_footer(text="Powered by Discord.gg/EmeraldServers")
-
-            await ctx.respond(embed=embed)
+            if isinstance(embed, tuple):
+                embed_obj, file_obj = embed
+                if file_obj:
+                    await ctx.respond(embed=embed_obj, file=file_obj)
+                else:
+                    await ctx.respond(embed=embed_obj)
+            else:
+                await ctx.respond(embed=embed)
 
         except Exception as e:
             logger.error(f"Failed to show bot info: {e}")
@@ -67,169 +55,96 @@ class Core(commands.Cog):
 
     @discord.slash_command(name="ping", description="Check bot latency")
     async def ping(self, ctx: discord.ApplicationContext):
-        """Check bot response time and latency"""
+        """Display bot latency"""
         try:
             latency = round(self.bot.latency * 1000)
 
             embed = EmbedFactory.build(
+                embed_type="core",
                 title="🏓 Pong!",
                 description=f"Bot latency: **{latency}ms**",
-                color=0x00FF00 if latency < 100 else 0xFFD700 if latency < 300 else 0xFF6B6B,
-                timestamp=datetime.now(timezone.utc)
+                data={
+                    "latency": latency,
+                    "thumbnail_url": "attachment://main.png"
+                }
             )
 
-            # Status indicator
-            if latency < 100:
-                status = "🟢 Excellent"
-            elif latency < 300:
-                status = "🟡 Good"
+            if isinstance(embed, tuple):
+                embed_obj, file_obj = embed
+                if file_obj:
+                    await ctx.respond(embed=embed_obj, file=file_obj)
+                else:
+                    await ctx.respond(embed=embed_obj)
             else:
-                status = "🔴 Poor"
-
-            embed.add_field(
-                name="📡 Connection Status",
-                value=status,
-                inline=True
-            )
-
-            embed.set_footer(text="Powered by Discord.gg/EmeraldServers")
-
-            await ctx.respond(embed=embed)
+                await ctx.respond(embed=embed)
 
         except Exception as e:
-            logger.error(f"Failed to ping: {e}")
+            logger.error(f"Failed to show ping: {e}")
             await ctx.respond("❌ Failed to check latency.", ephemeral=True)
 
-    @discord.slash_command(name="help", description="Show help information")
+    @discord.slash_command(name="help", description="Get help with bot commands")
     async def help(self, ctx: discord.ApplicationContext):
-        """Display help information and command categories"""
+        """Display help information"""
         try:
             embed = EmbedFactory.build(
-                title="❓ Help & Commands",
-                description="Complete guide to Emerald's Killfeed Bot",
-                color=0x3498DB,
-                timestamp=datetime.now(timezone.utc)
+                embed_type="core",
+                title="📚 Bot Help",
+                description="Available commands and features",
+                data={
+                    "commands": [
+                        "/info - Bot information",
+                        "/ping - Check latency",
+                        "/help - This help message",
+                        "/status - Bot status"
+                    ],
+                    "thumbnail_url": "attachment://main.png"
+                }
             )
 
-            # Free commands
-            embed.add_field(
-                name="🆓 Free Commands",
-                value="• `/info` - Bot information\n• `/ping` - Check latency\n• `/link` - Link characters\n• `/linked` - View linked characters\n• `/stats` - Player statistics",
-                inline=False
-            )
-
-            # Premium commands
-            embed.add_field(
-                name="⭐ Premium Commands",
-                value="• `/balance` - Check wallet\n• `/work` - Earn money\n• `/bounty` - Bounty system\n• `/faction` - Faction management\n• `/gambling` - Casino games",
-                inline=False
-            )
-
-            # Admin commands
-            embed.add_field(
-                name="🛠️ Admin Commands",
-                value="• `/server` - Server management\n• `/premium` - Premium management\n• `/eco` - Economy administration",
-                inline=False
-            )
-
-            embed.add_field(
-                name="🎯 Getting Started",
-                value="1. Link your character with `/link <name>`\n2. Check stats with `/stats`\n3. Upgrade to premium for full features!",
-                inline=False
-            )
-
-            embed.set_thumbnail(url="attachment://main.png")
-            embed.set_footer(text="Powered by Discord.gg/EmeraldServers")
-
-            await ctx.respond(embed=embed)
+            if isinstance(embed, tuple):
+                embed_obj, file_obj = embed
+                if file_obj:
+                    await ctx.respond(embed=embed_obj, file=file_obj)
+                else:
+                    await ctx.respond(embed=embed_obj)
+            else:
+                await ctx.respond(embed=embed)
 
         except Exception as e:
             logger.error(f"Failed to show help: {e}")
-            await ctx.respond("❌ Failed to show help information.", ephemeral=True)
+            await ctx.respond("❌ Failed to retrieve help information.", ephemeral=True)
 
-    @discord.slash_command(name="status", description="Check bot and system status")
+    @discord.slash_command(name="status", description="Check bot status")
     async def status(self, ctx: discord.ApplicationContext):
-        """Display comprehensive bot status information"""
+        """Display bot status"""
         try:
-            # Check database connection
-            db_status = "🟢 Connected"
-            try:
-                await self.bot.mongo_client.admin.command('ping')
-            except:
-                db_status = "🔴 Disconnected"
-
-            # Check scheduler status
-            scheduler_status = "🟢 Running" if self.bot.scheduler.running else "🔴 Stopped"
+            uptime = datetime.now(timezone.utc) - self.bot.start_time if hasattr(self.bot, 'start_time') else None
 
             embed = EmbedFactory.build(
-                title="📊 System Status",
-                description="Current bot and system status",
-                color=0x00FF7F,
-                timestamp=datetime.now(timezone.utc)
+                embed_type="core",
+                title="📊 Bot Status",
+                description="Current bot operational status",
+                data={
+                    "status": "Online",
+                    "guilds": len(self.bot.guilds),
+                    "users": len(self.bot.users),
+                    "uptime": str(uptime).split('.')[0] if uptime else "Unknown",
+                    "thumbnail_url": "attachment://main.png"
+                }
             )
 
-            embed.add_field(
-                name="🤖 Bot Status",
-                value=f"• Status: **🟢 Online**\n• Uptime: **{self._format_uptime()}**\n• Latency: **{round(self.bot.latency * 1000)}ms**",
-                inline=True
-            )
-
-            embed.add_field(
-                name="🔗 Connections",
-                value=f"• Database: **{db_status}**\n• Scheduler: **{scheduler_status}**\n• Discord: **🟢 Connected**",
-                inline=True
-            )
-
-            # Get command count safely
-            try:
-                if hasattr(self.bot, 'pending_application_commands'):
-                    command_count = len(self.bot.pending_application_commands)
-                elif hasattr(self.bot, 'application_commands'):
-                    command_count = len(self.bot.application_commands)
+            if isinstance(embed, tuple):
+                embed_obj, file_obj = embed
+                if file_obj:
+                    await ctx.respond(embed=embed_obj, file=file_obj)
                 else:
-                    command_count = 0
-            except:
-                command_count = 0
-
-            embed.add_field(
-                name="📈 Statistics",
-                value=f"• Guilds: **{len(self.bot.guilds)}**\n• Users: **{len(self.bot.users)}**\n• Commands: **{command_count}**",
-                inline=True
-            )
-
-            embed.set_thumbnail(url="attachment://main.png")
-            embed.set_footer(text="Powered by Discord.gg/EmeraldServers")
-
-            await ctx.respond(embed=embed)
+                    await ctx.respond(embed=embed_obj)
+            else:
+                await ctx.respond(embed=embed)
 
         except Exception as e:
             logger.error(f"Failed to show status: {e}")
             await ctx.respond("❌ Failed to retrieve status information.", ephemeral=True)
-
-    def _format_uptime(self) -> str:
-        """Format bot uptime in human readable format"""
-        try:
-            import psutil
-            import os
-
-            # Get process uptime
-            process = psutil.Process(os.getpid())
-            uptime_seconds = process.create_time()
-            current_time = datetime.now().timestamp()
-            uptime = int(current_time - uptime_seconds)
-
-            hours, remainder = divmod(uptime, 3600)
-            minutes, seconds = divmod(remainder, 60)
-
-            if hours > 0:
-                return f"{hours}h {minutes}m {seconds}s"
-            elif minutes > 0:
-                return f"{minutes}m {seconds}s"
-            else:
-                return f"{seconds}s"
-
-        except:
-            return "Unknown"
 
 def setup(bot):
     bot.add_cog(Core(bot))

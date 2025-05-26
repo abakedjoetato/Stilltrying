@@ -10,6 +10,7 @@ from typing import Optional
 
 import discord
 from discord.ext import commands
+from bot.utils.embed_factory import EmbedFactory
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ class Core(commands.Cog):
     async def info(self, ctx: discord.ApplicationContext):
         """Display bot information and statistics"""
         try:
-            embed = discord.Embed(
+            embed = EmbedFactory.build(
                 title='🤖 Emerald\'s Killfeed Bot',
                 description='Advanced Discord bot for Deadside PvP tracking and management',
                 color=0x3498DB,
@@ -71,7 +72,7 @@ class Core(commands.Cog):
         try:
             latency = round(self.bot.latency * 1000)
             
-            embed = discord.Embed(
+            embed = EmbedFactory.build(
                 title="🏓 Pong!",
                 description=f"Bot latency: **{latency}ms**",
                 color=0x00FF00 if latency < 100 else 0xFFD700 if latency < 300 else 0xFF6B6B,
@@ -104,7 +105,7 @@ class Core(commands.Cog):
     async def help(self, ctx: discord.ApplicationContext):
         """Display help information and command categories"""
         try:
-            embed = discord.Embed(
+            embed = EmbedFactory.build(
                 title="❓ Help & Commands",
                 description="Complete guide to Emerald's Killfeed Bot",
                 color=0x3498DB,
@@ -161,7 +162,7 @@ class Core(commands.Cog):
             # Check scheduler status
             scheduler_status = "🟢 Running" if self.bot.scheduler.running else "🔴 Stopped"
             
-            embed = discord.Embed(
+            embed = EmbedFactory.build(
                 title="📊 System Status",
                 description="Current bot and system status",
                 color=0x00FF7F,

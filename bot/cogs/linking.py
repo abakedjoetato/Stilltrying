@@ -12,6 +12,7 @@ from typing import Dict, List, Optional, Any
 
 import discord
 from discord.ext import commands
+from bot.utils.embed_factory import EmbedFactory
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +64,7 @@ class Linking(commands.Cog):
                 # Get updated player data
                 player_data = await self.bot.db_manager.get_linked_player(guild_id, discord_id)
                 
-                embed = discord.Embed(
+                embed = EmbedFactory.build(
                     title="🔗 Character Linked",
                     description=f"Successfully linked **{character}** to your Discord account!",
                     color=0x00FF00,
@@ -147,7 +148,7 @@ class Linking(commands.Cog):
                 # Get updated data
                 updated_player = await self.bot.db_manager.get_linked_player(guild_id, discord_id)
                 
-                embed = discord.Embed(
+                embed = EmbedFactory.build(
                     title="➕ Alternate Character Added",
                     description=f"Successfully added **{character}** as an alternate character!",
                     color=0x00FF00,
@@ -216,7 +217,7 @@ class Linking(commands.Cog):
                 # Get updated data
                 updated_player = await self.bot.db_manager.get_linked_player(guild_id, discord_id)
                 
-                embed = discord.Embed(
+                embed = EmbedFactory.build(
                     title="➖ Alternate Character Removed",
                     description=f"Successfully removed **{character}** from your linked characters!",
                     color=0xFFA500,
@@ -270,7 +271,7 @@ class Linking(commands.Cog):
                     )
                 return
             
-            embed = discord.Embed(
+            embed = EmbedFactory.build(
                 title="🔗 Linked Characters",
                 description=f"Character information for {target_user.mention}",
                 color=0x3498DB,
@@ -321,7 +322,7 @@ class Linking(commands.Cog):
             # Create confirmation embed
             characters_list = "\n".join([f"• {char}" for char in player_data['linked_characters']])
             
-            embed = discord.Embed(
+            embed = EmbedFactory.build(
                 title="⚠️ Confirm Unlinking",
                 description="Are you sure you want to unlink ALL your characters?",
                 color=0xFF6B6B,
@@ -366,7 +367,7 @@ class Linking(commands.Cog):
                     })
                     
                     if result.deleted_count > 0:
-                        success_embed = discord.Embed(
+                        success_embed = EmbedFactory.build(
                             title="✅ Characters Unlinked",
                             description="All your characters have been successfully unlinked!",
                             color=0x00FF00,
@@ -381,7 +382,7 @@ class Linking(commands.Cog):
                         await message.clear_reactions()
                 else:
                     # Cancelled
-                    cancel_embed = discord.Embed(
+                    cancel_embed = EmbedFactory.build(
                         title="❌ Unlinking Cancelled",
                         description="Your characters remain linked.",
                         color=0xFFD700,
@@ -393,7 +394,7 @@ class Linking(commands.Cog):
                     await message.clear_reactions()
                     
             except asyncio.TimeoutError:
-                timeout_embed = discord.Embed(
+                timeout_embed = EmbedFactory.build(
                     title="⏰ Confirmation Timeout",
                     description="Unlinking cancelled due to timeout.",
                     color=0x808080,

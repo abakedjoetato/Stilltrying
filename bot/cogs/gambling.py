@@ -92,7 +92,7 @@ class Gambling(commands.Cog):
 
             # Check premium access
             if not await self.check_premium_server(guild_id):
-                embed = discord.Embed(
+                embed = EmbedFactory.build(
                     title="🔒 Premium Feature",
                     description="Gambling features require premium subscription!",
                     color=0xFF6B6B
@@ -115,7 +115,7 @@ class Gambling(commands.Cog):
                 time_remaining = self.gambling_cooldowns[user_key] - now
                 if time_remaining.total_seconds() > 0:
                     seconds_left = int(time_remaining.total_seconds())
-                    embed = discord.Embed(
+                    embed = EmbedFactory.build(
                         title="⏱️ Gambling Cooldown",
                         description=f"You must wait **{seconds_left}** seconds before gambling again!",
                         color=0xFFD700
@@ -204,7 +204,7 @@ class Gambling(commands.Cog):
 
             # Check premium access
             if not await self.check_premium_server(guild_id):
-                embed = discord.Embed(
+                embed = EmbedFactory.build(
                     title="🔒 Premium Feature",
                     description="Gambling features require premium subscription!",
                     color=0xFF6B6B
@@ -231,7 +231,7 @@ class Gambling(commands.Cog):
                 time_remaining = self.gambling_cooldowns[user_key] - now
                 if time_remaining.total_seconds() > 0:
                     seconds_left = int(time_remaining.total_seconds())
-                    embed = discord.Embed(
+                    embed = EmbedFactory.build(
                         title="⏱️ Gambling Cooldown",
                         description=f"You must wait **{seconds_left}** seconds before gambling again!",
                         color=0xFFD700

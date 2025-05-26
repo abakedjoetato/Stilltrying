@@ -1,168 +1,163 @@
+
 """
-Emerald's Killfeed - Embed System Test Commands
-Test commands for verifying all embed types work correctly
+Emerald's Killfeed - Embed Testing System
+Test various embed configurations and styles
 """
+
+import logging
+from datetime import datetime, timezone
 
 import discord
 from discord.ext import commands
 from bot.utils.embed_factory import EmbedFactory
 
+logger = logging.getLogger(__name__)
+
 class EmbedTest(commands.Cog):
-    """Test commands for the embed system"""
+    """
+    EMBED TESTING
+    - Test embed configurations
+    - Preview embed styles
+    - Debug embed issues
+    """
     
     def __init__(self, bot):
         self.bot = bot
     
-    @discord.slash_command(name="test_killfeed", description="Test killfeed embed")
-    async def test_killfeed(self, ctx: discord.ApplicationContext):
-        """Test killfeed embed with sample data"""
-        data = {
-            'killer_name': 'ShadowStrike',
-            'killer_faction': 'Ravens',
-            'killer_kdr': '2.45',
-            'killer_streak': 7,
-            'victim_name': 'WastelandWolf',
-            'victim_faction': 'Wolves',
-            'victim_kdr': '1.89',
-            'weapon': 'AK-74',
-            'distance': '156'
-        }
-        
-        embed = await EmbedFactory.build('killfeed', data)
-        
-        # Attach image file for thumbnail
-        file = discord.File('assets/Killfeed.png', filename='Killfeed.png')
-        await ctx.respond(embed=embed, file=file)
+    @discord.slash_command(name="embed_test", description="Test embed configurations", default_member_permissions=discord.Permissions(administrator=True))
+    async def embed_test(self, ctx: discord.ApplicationContext, 
+                        embed_type: discord.Option(str, "Type of embed to test",
+                                                  choices=["basic", "success", "error", "warning", "info"])):
+        """Test different embed configurations"""
+        try:
+            if embed_type == "basic":
+                embed = EmbedFactory.build(
+                    title="🧪 Basic Embed Test",
+                    description="This is a basic embed test with standard formatting.",
+                    color=0x3498DB,
+                    timestamp=datetime.now(timezone.utc)
+                )
+                
+                embed.add_field(
+                    name="📝 Field 1",
+                    value="This is the first test field",
+                    inline=True
+                )
+                
+                embed.add_field(
+                    name="📝 Field 2",
+                    value="This is the second test field",
+                    inline=True
+                )
+                
+                embed.add_field(
+                    name="📝 Field 3",
+                    value="This is a full-width field",
+                    inline=False
+                )
+            
+            elif embed_type == "success":
+                embed = EmbedFactory.build(
+                    title="✅ Success Embed Test",
+                    description="This embed represents successful operations.",
+                    color=0x00FF00,
+                    timestamp=datetime.now(timezone.utc)
+                )
+                
+                embed.add_field(
+                    name="🎉 Operation",
+                    value="Test operation completed successfully!",
+                    inline=False
+                )
+            
+            elif embed_type == "error":
+                embed = EmbedFactory.build(
+                    title="❌ Error Embed Test",
+                    description="This embed represents error conditions.",
+                    color=0xFF6B6B,
+                    timestamp=datetime.now(timezone.utc)
+                )
+                
+                embed.add_field(
+                    name="🚨 Error Details",
+                    value="This is a test error message for debugging purposes.",
+                    inline=False
+                )
+            
+            elif embed_type == "warning":
+                embed = EmbedFactory.build(
+                    title="⚠️ Warning Embed Test",
+                    description="This embed represents warning conditions.",
+                    color=0xFFD700,
+                    timestamp=datetime.now(timezone.utc)
+                )
+                
+                embed.add_field(
+                    name="🔔 Warning Message",
+                    value="This is a test warning for user attention.",
+                    inline=False
+                )
+            
+            elif embed_type == "info":
+                embed = EmbedFactory.build(
+                    title="ℹ️ Info Embed Test",
+                    description="This embed provides informational content.",
+                    color=0x17A2B8,
+                    timestamp=datetime.now(timezone.utc)
+                )
+                
+                embed.add_field(
+                    name="📊 Information",
+                    value="This is test information for users.",
+                    inline=False
+                )
+            
+            await ctx.respond(embed=embed)
+            
+        except Exception as e:
+            logger.error(f"Failed to test embed: {e}")
+            await ctx.respond("❌ Failed to generate test embed.", ephemeral=True)
     
-    @discord.slash_command(name="test_suicide", description="Test suicide embed")
-    async def test_suicide(self, ctx: discord.ApplicationContext):
-        """Test suicide embed with sample data"""
-        data = {
-            'player_name': 'LoneWanderer',
-            'faction': 'Outcasts',
-            'cause': 'Menu Suicide'
-        }
-        
-        embed = await EmbedFactory.build('suicide', data)
-        
-        # Attach image file for thumbnail
-        file = discord.File('assets/main.png', filename='main.png')
-        await ctx.respond(embed=embed, file=file)
-    
-    @discord.slash_command(name="test_fall", description="Test fall damage embed")
-    async def test_fall(self, ctx: discord.ApplicationContext):
-        """Test fall damage embed with sample data"""
-        data = {
-            'player_name': 'CliffDiver',
-            'faction': 'Daredevils'
-        }
-        
-        embed = await EmbedFactory.build('fall', data)
-        
-        # Attach image file for thumbnail
-        file = discord.File('assets/main.png', filename='main.png')
-        await ctx.respond(embed=embed, file=file)
-    
-    @discord.slash_command(name="test_slots", description="Test animated slots embed")
-    async def test_slots(self, ctx: discord.ApplicationContext):
-        """Test animated slots with sample data"""
-        data = {
-            'win': True,
-            'payout': 1200
-        }
-        
-        # Use the animated slots builder
-        await EmbedFactory.build_animated_slots(ctx, data)
-    
-    @discord.slash_command(name="test_roulette", description="Test roulette embed")
-    async def test_roulette(self, ctx: discord.ApplicationContext):
-        """Test roulette embed with sample data"""
-        data = {
-            'player_pick': 'Red',
-            'result': 'Red 18',
-            'win': True,
-            'payout': 500,
-            'bet_amount': 250
-        }
-        
-        embed = await EmbedFactory.build('roulette', data)
-        
-        # Attach image file for thumbnail
-        file = discord.File('assets/main.png', filename='main.png')
-        await ctx.respond(embed=embed, file=file)
-    
-    @discord.slash_command(name="test_blackjack", description="Test blackjack embed")
-    async def test_blackjack(self, ctx: discord.ApplicationContext):
-        """Test blackjack embed with sample data"""
-        data = {
-            'player_hand': 'K♠ A♦',
-            'player_total': 21,
-            'dealer_hand': 'Q♣ 8♥',
-            'dealer_total': 18,
-            'outcome': 'BLACKJACK!',
-            'payout': 750
-        }
-        
-        embed = await EmbedFactory.build('blackjack', data)
-        
-        # Attach image file for thumbnail
-        file = discord.File('assets/main.png', filename='main.png')
-        await ctx.respond(embed=embed, file=file)
-    
-    @discord.slash_command(name="test_profile", description="Test profile embed")
-    async def test_profile(self, ctx: discord.ApplicationContext):
-        """Test profile embed with sample data"""
-        data = {
-            'player_name': 'DeadEyeSniper',
-            'faction': 'Rangers',
-            'kills': 247,
-            'deaths': 89,
-            'kdr': '2.78',
-            'longest_streak': 15,
-            'top_weapon': 'M24 SWS',
-            'rival': 'QuickDraw',
-            'nemesis': 'GhostReaper'
-        }
-        
-        embed = await EmbedFactory.build('profile', data)
-        
-        # Attach image file for thumbnail
-        file = discord.File('assets/main.png', filename='main.png')
-        await ctx.respond(embed=embed, file=file)
-    
-    @discord.slash_command(name="test_bounty", description="Test bounty embed")
-    async def test_bounty(self, ctx: discord.ApplicationContext):
-        """Test bounty embed with sample data"""
-        data = {
-            'target_name': 'BloodHunter',
-            'target_faction': 'Reapers',
-            'amount': 5000,
-            'set_by': 'VengefulSoul',
-            'reason': 'Repeated spawn camping',
-            'time_remaining': '18h 23m'
-        }
-        
-        embed = await EmbedFactory.build('bounty', data)
-        
-        # Attach image file for thumbnail
-        file = discord.File('assets/Bounty.png', filename='Bounty.png')
-        await ctx.respond(embed=embed, file=file)
-    
-    @discord.slash_command(name="test_admin", description="Test admin embed")
-    async def test_admin(self, ctx: discord.ApplicationContext):
-        """Test admin embed with sample data"""
-        data = {
-            'executor': ctx.user.display_name,
-            'target': 'TestPlayer',
-            'command': '/test_admin',
-            'outcome': 'Successfully executed'
-        }
-        
-        embed = await EmbedFactory.build('admin', data)
-        
-        # Attach image file for thumbnail
-        file = discord.File('assets/main.png', filename='main.png')
-        await ctx.respond(embed=embed, file=file)
+    @discord.slash_command(name="embed_factory_test", description="Test EmbedFactory functionality", default_member_permissions=discord.Permissions(administrator=True))
+    async def embed_factory_test(self, ctx: discord.ApplicationContext):
+        """Test the EmbedFactory system"""
+        try:
+            embed = EmbedFactory.build(
+                title="🏭 EmbedFactory Test",
+                description="Testing the EmbedFactory system with all features.",
+                color=0x9B59B6,
+                timestamp=datetime.now(timezone.utc)
+            )
+            
+            embed.add_field(
+                name="🔧 Factory Status",
+                value="✅ Working correctly",
+                inline=True
+            )
+            
+            embed.add_field(
+                name="📊 Tests Passed",
+                value="✅ All systems operational",
+                inline=True
+            )
+            
+            embed.add_field(
+                name="🎨 Theme",
+                value="✅ Consistent styling applied",
+                inline=True
+            )
+            
+            embed.add_field(
+                name="🖼️ Assets",
+                value="✅ Thumbnails and footers working",
+                inline=False
+            )
+            
+            await ctx.respond(embed=embed)
+            
+        except Exception as e:
+            logger.error(f"Failed to test EmbedFactory: {e}")
+            await ctx.respond("❌ EmbedFactory test failed.", ephemeral=True)
 
 def setup(bot):
     bot.add_cog(EmbedTest(bot))

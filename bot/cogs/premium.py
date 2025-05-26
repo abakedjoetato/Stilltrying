@@ -1,28 +1,24 @@
 """
-Emerald's Killfeed - Premium Management System (PHASE 9)
-/sethome by BOT_OWNER_ID
-/premium assign, /premium revoke, /premium status
-Premium is assigned per server, not user
+Emerald's Killfeed - Premium Management System
+Manage premium subscriptions and features
 """
 
-import os
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
 
 import discord
 from discord.ext import commands
-from bot.cogs.autocomplete import ServerAutocomplete
 from bot.utils.embed_factory import EmbedFactory
 
 logger = logging.getLogger(__name__)
 
 class Premium(commands.Cog):
     """
-    PREMIUM MGMT (PHASE 9)
-    - /sethome by BOT_OWNER_ID
-    - /premium assign, /premium revoke, /premium status
-    - Premium is assigned per server, not user
+    PREMIUM MANAGEMENT
+    - Check premium status
+    - Manage premium features
+    - Admin premium controls
     """
 
     def __init__(self, bot):
@@ -590,6 +586,7 @@ class Premium(commands.Cog):
                 else:
                     await ctx.followup.send("❌ Failed to remove server. Please try again.")
             
+            
         except Exception as e:
             logger.error(f"Failed to remove server: {e}")
             await ctx.respond("❌ Failed to remove server. Please try again.", ephemeral=True)
@@ -649,6 +646,165 @@ class Premium(commands.Cog):
         except Exception as e:
             logger.error(f"Failed to refresh server data: {e}")
             await ctx.respond("❌ Failed to initiate data refresh. Please try again.", ephemeral=True)
+
+    @discord.slash_command(name="premium_status", description="Check premium status")
+    async def premium_status2(self, ctx: discord.ApplicationContext):
+        """Check the premium status for this server"""
+        try:
+            guild_id = ctx.guild.id
+
+            # Get guild configuration
+            guild_doc = await self.bot.db_manager.get_guild(guild_id)
+
+            if not guild_doc:
+                embed = EmbedFactory.build(
+                    title="⭐ Premium Status",
+                    description="Server not configured yet!",
+                    color=0x808080,
+                    timestamp=datetime.now(timezone.utc)
+                )
+                await ctx.respond(embed=embed)
+                return
+
+            # Check premium servers
+            premium_servers = []
+            free_servers = []
+
+            servers = guild_doc.get('servers', [])
+            for server_config in servers:
+                server_id = server_config.get('server_id', server_config.get('_id', 'default'))
+                if await self.bot.db_manager.is_premium_server(guild_id, server_id):
+                    premium_servers.append(server_id)
+                else:
+                    free_servers.append(server_id)
+
+            has_premium = len(premium_servers) > 0
+
+            embed = EmbedFactory.build(
+                title="⭐ Premium Status",
+                description=f"Premium status for **{ctx.guild.name}**",
+                color=0xFFD700 if has_premium else 0x808080,
+                timestamp=datetime.now(timezone.utc)
+            )
+
+            status_text = "🟢 **ACTIVE**" if has_premium else "🔴 **INACTIVE**"
+            embed.add_field(
+                name="📊 Status",
+                value=status_text,
+                inline=True
+            )
+
+            embed.add_field(
+                name="🎯 Premium Servers",
+                value=f"{len(premium_servers)}",
+                inline=True
+            )
+
+            embed.add_field(
+                name="🆓 Free Servers",
+                value=f"{len(free_servers)}",
+                inline=True
+            )
+
+            # Features available
+            if has_premium:
+                features = [
+                    "💰 Economy System",
+                    "🎰 Gambling Games",
+                    "🎯 Bounty System",
+                    "⚔️ Faction System",
+                    "📊 Leaderboards",
+                    "📈 Advanced Statistics"
+                ]
+            else:
+                features = [
+                    "🔗 Character Linking",
+                    "📊 Basic Statistics",
+                    "ℹ️ Bot Information"
+                ]
+
+            embed.add_field(
+                name="🎁 Available Features",
+                value="\n".join(features),
+                inline=False
+            )
+
+            if not has_premium:
+                embed.add_field(
+                    name="💎 Upgrade to Premium",
+                    value="Contact Discord.gg/EmeraldServers for premium access!",
+                    inline=False
+                )
+
+            await ctx.respond(embed=embed)
+
+        except Exception as e:
+            logger.error(f"Failed to check premium status: {e}")
+            await ctx.respond("❌ Failed to retrieve premium status.", ephemeral=True)
+
+    @discord.slash_command(name="premium_grant", description="Grant premium access (Admin)", default_member_permissions=discord.Permissions(administrator=True))
+    async def premium_grant(self, ctx: discord.ApplicationContext, 
+                           server_id: str = "default"):
+        """Grant premium access to a server (admin only)"""
+        try:
+            guild_id = ctx.guild.id
+
+            # Grant premium
+            success = await self.bot.db_manager.set_premium_server(guild_id, server_id, True)
+
+            if success:
+                embed = EmbedFactory.build(
+                    title="⭐ Premium Granted",
+                    description=f"Premium access granted for server **{server_id}**",
+                    color=0x00FF00,
+                    timestamp=datetime.now(timezone.utc)
+                )
+
+                embed.add_field(
+                    name="🎁 Premium Features Unlocked",
+                    value="• Economy System\n• Gambling Games\n• Bounty System\n• Faction System\n• Leaderboards\n• Advanced Statistics",
+                    inline=False
+                )
+
+                await ctx.respond(embed=embed)
+            else:
+                await ctx.respond("❌ Failed to grant premium access.", ephemeral=True)
+
+        except Exception as e:
+            logger.error(f"Failed to grant premium: {e}")
+            await ctx.respond("❌ Failed to grant premium access.", ephemeral=True)
+
+    @discord.slash_command(name="premium_revoke", description="Revoke premium access (Admin)", default_member_permissions=discord.Permissions(administrator=True))
+    async def premium_revoke(self, ctx: discord.ApplicationContext, 
+                            server_id: str = "default"):
+        """Revoke premium access from a server (admin only)"""
+        try:
+            guild_id = ctx.guild.id
+
+            # Revoke premium
+            success = await self.bot.db_manager.set_premium_server(guild_id, server_id, False)
+
+            if success:
+                embed = EmbedFactory.build(
+                    title="❌ Premium Revoked",
+                    description=f"Premium access revoked for server **{server_id}**",
+                    color=0xFF6B6B,
+                    timestamp=datetime.now(timezone.utc)
+                )
+
+                embed.add_field(
+                    name="🔒 Features Disabled",
+                    value="• Economy System\n• Gambling Games\n• Bounty System\n• Faction System\n• Leaderboards\n• Advanced Statistics",
+                    inline=False
+                )
+
+                await ctx.respond(embed=embed)
+            else:
+                await ctx.respond("❌ Failed to revoke premium access.", ephemeral=True)
+
+        except Exception as e:
+            logger.error(f"Failed to revoke premium: {e}")
+            await ctx.respond("❌ Failed to revoke premium access.", ephemeral=True)
 
 def setup(bot):
     bot.add_cog(Premium(bot))

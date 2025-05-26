@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Any
 
 import discord
 from discord.ext import commands
+from bot.utils.embed_factory import EmbedFactory
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ class LeaderboardsFixed(commands.Cog):
             
             # Check premium access
             if not await self.check_premium_server(guild_id):
-                embed = discord.Embed(
+                embed = EmbedFactory.build(
                     title="🔒 Premium Feature",
                     description="Leaderboards require premium subscription!",
                     color=0xFF6B6B
@@ -61,7 +62,7 @@ class LeaderboardsFixed(commands.Cog):
             leaderboard_data = await self._get_leaderboard_data(guild_id, board_type)
             
             if not leaderboard_data:
-                embed = discord.Embed(
+                embed = EmbedFactory.build(
                     title=f"📊 {board_type.title()} Leaderboard",
                     description="No data available yet!",
                     color=0x808080,
@@ -71,7 +72,7 @@ class LeaderboardsFixed(commands.Cog):
                 return
             
             # Create leaderboard embed
-            embed = discord.Embed(
+            embed = EmbedFactory.build(
                 title=f"🏆 {board_type.title()} Leaderboard",
                 description=f"Top players by {board_type}",
                 color=0xFFD700,

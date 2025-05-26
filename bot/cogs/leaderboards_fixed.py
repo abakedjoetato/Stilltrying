@@ -10,7 +10,6 @@ from typing import Dict, List, Optional, Any
 
 import discord
 from discord.ext import commands
-from bot.utils.embed_factory import EmbedFactory
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +37,7 @@ class LeaderboardsFixed(commands.Cog):
         
         return False
     
-    @commands.slash_command(name="leaderboard", description="View player leaderboards")
+    @discord.slash_command(name="leaderboard", description="View player leaderboards")
     async def leaderboard(self, ctx: discord.ApplicationContext, 
                          board_type: discord.Option(str, "Type of leaderboard", 
                                                    choices=["kills", "kdr", "streak", "distance"])):
@@ -180,9 +179,11 @@ class LeaderboardsFixed(commands.Cog):
             
             # Execute aggregation
             cursor = self.bot.db_manager.pvp_data.aggregate(pipeline)
-            results = await cursor.to_list(length=50)  # Get top 50
+            results = []
+            async for doc in cursor:
+                results.append(doc)
             
-            return results
+            return results[:50]  # Return top 50
             
         except Exception as e:
             logger.error(f"Failed to get leaderboard data: {e}")

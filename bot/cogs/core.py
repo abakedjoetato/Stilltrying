@@ -24,20 +24,16 @@ class Core(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @commands.slash_command(name="info", description="Show bot information")
-    async def info(self, ctx):
+    @discord.slash_command(name="info", description="Show bot information")
+    async def info(self, ctx: discord.ApplicationContext):
         """Display bot information and statistics"""
         try:
-            # Use EmbedFactory for consistent styling
-            from bot.utils.embed_factory import EmbedFactory
-            
-            embed_data = {
-                'title': '🤖 Emerald\'s Killfeed Bot',
-                'description': 'Advanced Discord bot for Deadside PvP tracking and management',
-                'thumbnail_url': 'attachment://main.png'
-            }
-            
-            embed = await EmbedFactory.build('admin', embed_data)
+            embed = discord.Embed(
+                title='🤖 Emerald\'s Killfeed Bot',
+                description='Advanced Discord bot for Deadside PvP tracking and management',
+                color=0x3498DB,
+                timestamp=datetime.now(timezone.utc)
+            )
             
             # Bot stats
             embed.add_field(
@@ -69,8 +65,8 @@ class Core(commands.Cog):
             logger.error(f"Failed to show bot info: {e}")
             await ctx.respond("❌ Failed to retrieve bot information.", ephemeral=True)
     
-    @commands.slash_command(name="ping", description="Check bot latency")
-    async def ping(self, ctx):
+    @discord.slash_command(name="ping", description="Check bot latency")
+    async def ping(self, ctx: discord.ApplicationContext):
         """Check bot response time and latency"""
         try:
             latency = round(self.bot.latency * 1000)
@@ -104,8 +100,8 @@ class Core(commands.Cog):
             logger.error(f"Failed to ping: {e}")
             await ctx.respond("❌ Failed to check latency.", ephemeral=True)
     
-    @commands.slash_command(name="help", description="Show help information")
-    async def help(self, ctx):
+    @discord.slash_command(name="help", description="Show help information")
+    async def help(self, ctx: discord.ApplicationContext):
         """Display help information and command categories"""
         try:
             embed = discord.Embed(
@@ -151,7 +147,7 @@ class Core(commands.Cog):
             logger.error(f"Failed to show help: {e}")
             await ctx.respond("❌ Failed to show help information.", ephemeral=True)
     
-    @commands.slash_command(name="status", description="Check bot and system status")
+    @discord.slash_command(name="status", description="Check bot and system status")
     async def status(self, ctx: discord.ApplicationContext):
         """Display comprehensive bot status information"""
         try:

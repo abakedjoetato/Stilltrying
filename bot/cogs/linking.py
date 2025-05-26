@@ -12,7 +12,6 @@ from typing import Dict, List, Optional, Any
 
 import discord
 from discord.ext import commands
-from bot.utils.embed_factory import EmbedFactory
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +26,8 @@ class Linking(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @commands.slash_command(name="link", description="Link your Discord account to a character")
-    async def link(self, ctx, character: str):
+    @discord.slash_command(name="link", description="Link your Discord account to a character")
+    async def link(self, ctx: discord.ApplicationContext, character: str):
         """Link Discord account to a character name"""
         try:
             guild_id = ctx.guild.id
@@ -94,9 +93,7 @@ class Linking(commands.Cog):
             logger.error(f"Failed to link character: {e}")
             await ctx.respond("❌ Failed to link character.", ephemeral=True)
     
-    alt = commands.SlashCommandGroup("alt", "Manage alternate characters")
-    
-    @alt.command(name="add", description="Add an alternate character")
+    @discord.slash_command(name="alt_add", description="Add an alternate character")
     async def alt_add(self, ctx: discord.ApplicationContext, character: str):
         """Add an alternate character to your account"""
         try:
@@ -174,7 +171,7 @@ class Linking(commands.Cog):
             logger.error(f"Failed to add alt character: {e}")
             await ctx.respond("❌ Failed to add alternate character.", ephemeral=True)
     
-    @alt.command(name="remove", description="Remove an alternate character")
+    @discord.slash_command(name="alt_remove", description="Remove an alternate character")
     async def alt_remove(self, ctx: discord.ApplicationContext, character: str):
         """Remove an alternate character from your account"""
         try:
@@ -250,7 +247,7 @@ class Linking(commands.Cog):
             logger.error(f"Failed to remove alt character: {e}")
             await ctx.respond("❌ Failed to remove alternate character.", ephemeral=True)
     
-    @commands.slash_command(name="linked", description="View your linked characters")
+    @discord.slash_command(name="linked", description="View your linked characters")
     async def linked(self, ctx: discord.ApplicationContext, user: discord.Member = None):
         """View linked characters for yourself or another user"""
         try:
@@ -307,7 +304,7 @@ class Linking(commands.Cog):
             logger.error(f"Failed to show linked characters: {e}")
             await ctx.respond("❌ Failed to retrieve linked characters.", ephemeral=True)
     
-    @commands.slash_command(name="unlink", description="Unlink all your characters")
+    @discord.slash_command(name="unlink", description="Unlink all your characters")
     async def unlink(self, ctx: discord.ApplicationContext):
         """Unlink all characters from your Discord account"""
         try:

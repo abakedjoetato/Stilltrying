@@ -14,8 +14,6 @@ from typing import Dict, Optional, Any
 
 import discord
 from discord.ext import commands
-from bot.cogs.autocomplete import ServerAutocomplete
-from bot.utils.embed_factory import EmbedFactory
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +70,7 @@ class Economy(commands.Cog):
         except Exception as e:
             logger.error(f"Failed to add wallet event: {e}")
     
-    @commands.slash_command(name="balance", description="Check your wallet balance")
+    @discord.slash_command(name="balance", description="Check your wallet balance")
     async def balance(self, ctx: discord.ApplicationContext):
         """Check user's wallet balance"""
         try:
@@ -127,7 +125,7 @@ class Economy(commands.Cog):
             logger.error(f"Failed to show balance: {e}")
             await ctx.respond("❌ Failed to retrieve balance. Please try again.", ephemeral=True)
     
-    @commands.slash_command(name="work", description="Work to earn money")
+    @discord.slash_command(name="work", description="Work to earn money")
     async def work(self, ctx: discord.ApplicationContext):
         """Work command to earn money"""
         try:
@@ -227,11 +225,9 @@ class Economy(commands.Cog):
         except Exception as e:
             logger.error(f"Failed to process work command: {e}")
             await ctx.respond("❌ Work failed. Please try again.", ephemeral=True)
-    
-    # Admin economy commands
-    eco = commands.SlashCommandGroup("eco", "Economy administration commands")
-    
-    @eco.command(name="give", description="Give money to a user")
+
+    # Economy admin commands
+    @discord.slash_command(name="eco_give", description="Give money to a user (Admin)")
     @commands.default_permissions(administrator=True)
     async def eco_give(self, ctx: discord.ApplicationContext, 
                        user: discord.Member, amount: int):
@@ -280,7 +276,7 @@ class Economy(commands.Cog):
             logger.error(f"Failed to give money: {e}")
             await ctx.respond("❌ Failed to give money.", ephemeral=True)
     
-    @eco.command(name="take", description="Take money from a user")
+    @discord.slash_command(name="eco_take", description="Take money from a user (Admin)")
     @commands.default_permissions(administrator=True)
     async def eco_take(self, ctx: discord.ApplicationContext, 
                        user: discord.Member, amount: int):
@@ -338,7 +334,7 @@ class Economy(commands.Cog):
             logger.error(f"Failed to take money: {e}")
             await ctx.respond("❌ Failed to take money.", ephemeral=True)
     
-    @eco.command(name="reset", description="Reset a user's wallet")
+    @discord.slash_command(name="eco_reset", description="Reset a user's wallet (Admin)")
     @commands.default_permissions(administrator=True)
     async def eco_reset(self, ctx: discord.ApplicationContext, user: discord.Member):
         """Reset a user's wallet (admin only)"""

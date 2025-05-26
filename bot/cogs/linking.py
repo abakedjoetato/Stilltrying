@@ -11,6 +11,7 @@ from typing import Dict, List, Optional, Any
 
 import discord
 from discord.ext import commands
+from bot.utils.embed_factory import EmbedFactory
 
 logger = logging.getLogger(__name__)
 

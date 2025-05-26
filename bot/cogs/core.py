@@ -28,7 +28,7 @@ class Core(commands.Cog):
         """Display bot information and statistics"""
         try:
             # Use EmbedFactory for consistent styling
-            from ..utils.embed_factory import EmbedFactory
+            from bot.utils.embed_factory import EmbedFactory
             
             embed_data = {
                 'title': '🤖 Emerald\'s Killfeed Bot',

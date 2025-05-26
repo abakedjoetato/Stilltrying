@@ -14,6 +14,7 @@ from typing import Dict, Optional, Any
 import discord
 from discord.ext import commands
 from bot.cogs.autocomplete import ServerAutocomplete
+from bot.utils.embed_factory import EmbedFactory
 
 logger = logging.getLogger(__name__)
 

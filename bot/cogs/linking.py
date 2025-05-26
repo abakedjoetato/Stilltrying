@@ -1,3 +1,4 @@
+
 """
 Emerald's Killfeed - Player Linking System (PHASE 5)
 /link <char>, /alt add/remove, /linked, /unlink
@@ -26,7 +27,7 @@ class Linking(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @discord.slash_command(name="link", description="Link your Discord account to a character")
+    @commands.slash_command(name="link", description="Link your Discord account to a character")
     async def link(self, ctx, character: str):
         """Link Discord account to a character name"""
         try:
@@ -93,7 +94,7 @@ class Linking(commands.Cog):
             logger.error(f"Failed to link character: {e}")
             await ctx.respond("❌ Failed to link character.", ephemeral=True)
     
-    alt = discord.SlashCommandGroup("alt", "Manage alternate characters")
+    alt = commands.SlashCommandGroup("alt", "Manage alternate characters")
     
     @alt.command(name="add", description="Add an alternate character")
     async def alt_add(self, ctx: discord.ApplicationContext, character: str):
@@ -249,7 +250,7 @@ class Linking(commands.Cog):
             logger.error(f"Failed to remove alt character: {e}")
             await ctx.respond("❌ Failed to remove alternate character.", ephemeral=True)
     
-    @discord.slash_command(name="linked", description="View your linked characters")
+    @commands.slash_command(name="linked", description="View your linked characters")
     async def linked(self, ctx: discord.ApplicationContext, user: discord.Member = None):
         """View linked characters for yourself or another user"""
         try:
@@ -306,7 +307,7 @@ class Linking(commands.Cog):
             logger.error(f"Failed to show linked characters: {e}")
             await ctx.respond("❌ Failed to retrieve linked characters.", ephemeral=True)
     
-    @discord.slash_command(name="unlink", description="Unlink all your characters")
+    @commands.slash_command(name="unlink", description="Unlink all your characters")
     async def unlink(self, ctx: discord.ApplicationContext):
         """Unlink all characters from your Discord account"""
         try:

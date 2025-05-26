@@ -1,3 +1,4 @@
+
 """
 Emerald's Killfeed - Core System Commands
 Basic bot management, info, and utility commands
@@ -23,7 +24,7 @@ class Core(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @discord.slash_command(name="info", description="Show bot information")
+    @commands.slash_command(name="info", description="Show bot information")
     async def info(self, ctx):
         """Display bot information and statistics"""
         try:
@@ -68,7 +69,7 @@ class Core(commands.Cog):
             logger.error(f"Failed to show bot info: {e}")
             await ctx.respond("❌ Failed to retrieve bot information.", ephemeral=True)
     
-    @discord.slash_command(name="ping", description="Check bot latency")
+    @commands.slash_command(name="ping", description="Check bot latency")
     async def ping(self, ctx):
         """Check bot response time and latency"""
         try:
@@ -103,7 +104,7 @@ class Core(commands.Cog):
             logger.error(f"Failed to ping: {e}")
             await ctx.respond("❌ Failed to check latency.", ephemeral=True)
     
-    @discord.slash_command(name="help", description="Show help information")
+    @commands.slash_command(name="help", description="Show help information")
     async def help(self, ctx):
         """Display help information and command categories"""
         try:
@@ -150,7 +151,7 @@ class Core(commands.Cog):
             logger.error(f"Failed to show help: {e}")
             await ctx.respond("❌ Failed to show help information.", ephemeral=True)
     
-    @discord.slash_command(name="status", description="Check bot and system status")
+    @commands.slash_command(name="status", description="Check bot and system status")
     async def status(self, ctx: discord.ApplicationContext):
         """Display comprehensive bot status information"""
         try:

@@ -141,7 +141,7 @@ class EmeraldKillfeedBot(commands.Bot):
 
         for cog in cogs:
             try:
-                bot.load_extension(cog)  # Remove await - load_extension is not async in py-cord 2.6.1
+                self.load_extension(cog)  # Use self instead of bot
                 loaded_count += 1
                 logger.info(f"✅ Loaded cog: {cog}")
             except Exception as e:

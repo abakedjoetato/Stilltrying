@@ -26,10 +26,10 @@ except ImportError as e:
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from bot.models.database import DatabaseManager
-from bot.parsers.killfeed_parser import KillfeedParser
-from bot.parsers.historical_parser import HistoricalParser
-from bot.parsers.log_parser import LogParser
+from bot.database import DatabaseManager
+from bot.killfeed_parser import KillfeedParser
+from bot.historical_parser import HistoricalParser
+from bot.log_parser import LogParser
 
 # Load environment variables
 load_dotenv()
